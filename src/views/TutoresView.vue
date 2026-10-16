@@ -78,7 +78,11 @@ onMounted(carregarDados);
         <tr>
           <th>ID</th>
           <th>Nome</th>
+          <th>CPF</th>
           <th>Telefone</th>
+          <th>E-mail</th>
+          <th>Pets(Quantidade)</th>
+          <th>Nomes dos pets</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -86,7 +90,11 @@ onMounted(carregarDados);
         <tr v-for="tutor in tutores" :key="tutor.id">
           <td>{{ tutor.id }}</td>
           <td>{{ tutor.nome }}</td>
+          <td></td>
           <td>{{ tutor.telefone }}</td>
+          <td></td>
+          <td></td>
+          <td></td>
           <td>
             <button class="btn btn-danger" @click="excluirTutor(tutor)">
               Excluir
