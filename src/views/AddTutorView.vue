@@ -67,6 +67,29 @@ async function salvarTutor() {
         />
       </div>
 
+      <div class="col-md-6 mb-3">
+        <label for="cpf" class="form-label">CPF/CNPJ :</label>
+        <input
+          id="cpf"
+          v-model="novoTutor.cpf"
+          type="Number"
+          class="form-control"
+          required
+          placeholder="Digite o CPF ou CNPJ"
+        />
+      </div>
+      <div class="col-md-6 mb-3">
+        <label for="email" class="form-label">Email:</label>
+        <input
+          id="email"
+          v-model="novoTutor.email"
+          type="text"
+          class="form-control"
+          required
+          placeholder="nome@examplo.com"
+        />
+      </div>
+
       <button type="submit" class="btn btn-success">Salvar tutor</button>
     </form>
   </div>
