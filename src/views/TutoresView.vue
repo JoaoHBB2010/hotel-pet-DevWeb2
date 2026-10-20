@@ -7,6 +7,7 @@ const API_URL = 'http://localhost:3000';
 const tutores = ref([]);
 const pets = ref([]);
 const erro = ref('');
+const excluindoTutorId = ref(null);
 
 function petsDoTutor(tutorId) {
   return pets.value.filter((pet) => String(pet.tutorId) === String(tutorId));
@@ -77,16 +78,33 @@ async function carregarDados() {
 }
 
 async function excluirTutor(tutor) {
-  if (pets.value.some((pet) => String(pet.tutorId) === String(tutor.id))) {
-    window.alert('Não é possível excluir este tutor enquanto houver pets vinculados.');
+  if (excluindoTutorId.value !== null) {
     return;
   }
 
-  if (!window.confirm('Deseja realmente remover este tutor?')) {
-    return;
-  }
+  excluindoTutorId.value = tutor.id;
 
   try {
+    const respostaPets = await fetch(
+      `${API_URL}/pets?tutorId=${encodeURIComponent(tutor.id)}`,
+    );
+
+    if (!respostaPets.ok) {
+      throw new Error('Não foi possível verificar os pets vinculados ao tutor.');
+    }
+
+    const petsVinculados = await respostaPets.json();
+    if (petsVinculados.length > 0) {
+      window.alert(
+        'Não é possível excluir este tutor enquanto houver pets vinculados. Remova ou transfira os pets primeiro.',
+      );
+      return;
+    }
+
+    if (!window.confirm('Deseja realmente remover este tutor?')) {
+      return;
+    }
+
     const resposta = await fetch(`${API_URL}/tutores/${tutor.id}`, {
       method: 'DELETE',
     });
@@ -95,10 +113,18 @@ async function excluirTutor(tutor) {
       throw new Error('Não foi possível excluir o tutor.');
     }
 
-    await carregarDados();
+    tutores.value = tutores.value.filter(
+      (item) => String(item.id) !== String(tutor.id),
+    );
+    pets.value = pets.value.filter(
+      (pet) => String(pet.tutorId) !== String(tutor.id),
+    );
+    erro.value = '';
   } catch (error) {
     console.error('Erro ao excluir tutor:', error);
     erro.value = 'Não foi possível excluir o tutor. Tente novamente.';
+  } finally {
+    excluindoTutorId.value = null;
   }
 }
 
@@ -121,50 +147,61 @@ onMounted(carregarDados);
       {{ erro }}
     </div>
 
-    <table class="table table-striped table-hover">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nome completo</th>
-          <th>CPF/CNPJ</th>
-          <th>Telefone</th>
-          <th>E-mail</th>
-          <th>Data de nascimento</th>
-          <th>Quantidade de pets</th>
-          <th>Pets vinculados</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="tutor in tutores" :key="tutor.id">
-          <td>{{ tutor.id }}</td>
-          <td>{{ tutor.nomeCompleto || tutor.nome || '-' }}</td>
-          <td>{{ formatarCpfCnpj(tutor.cpfCnpj || tutor.cpf) }}</td>
-          <td>{{ formatarTelefone(tutor.telefone) }}</td>
-          <td>{{ tutor.email || '-' }}</td>
-          <td>{{ formatarData(tutor.dataNascimento || tutor.dataDeNascimento) }}</td>
-          <td>{{ petsDoTutor(tutor.id).length }}</td>
-          <td>
-            {{ petsDoTutor(tutor.id).map((pet) => pet.nome).join(', ') || 'Nenhum pet' }}
-          </td>
-          <td>
-            <RouterLink
-              class="btn btn-primary me-2"
-              :to="`/tutores/${tutor.id}`"
-            >
-              Visualizar
-            </RouterLink>
-            <button class="btn btn-danger" @click="excluirTutor(tutor)">
-              Excluir
-            </button>
-          </td>
-        </tr>
-        <tr v-if="tutores.length === 0 && !erro">
-          <td colspan="10" class="text-center text-body-secondary">
-            Nenhum tutor cadastrado.
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome completo</th>
+            <th>CPF/CNPJ</th>
+            <th>Telefone</th>
+            <th>E-mail</th>
+            <th>Data de nascimento</th>
+            <th>Quantidade de pets</th>
+            <th>Pets vinculados</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="tutor in tutores" :key="tutor.id">
+            <td>{{ tutor.id }}</td>
+            <td>{{ tutor.nomeCompleto || tutor.nome || '-' }}</td>
+            <td>{{ formatarCpfCnpj(tutor.cpfCnpj || tutor.cpf) }}</td>
+            <td>{{ formatarTelefone(tutor.telefone) }}</td>
+            <td>{{ tutor.email || '-' }}</td>
+            <td>{{ formatarData(tutor.dataNascimento || tutor.dataDeNascimento) }}</td>
+            <td>{{ petsDoTutor(tutor.id).length }}</td>
+            <td>
+              {{ petsDoTutor(tutor.id).map((pet) => pet.nome).join(', ') || 'Nenhum pet' }}
+            </td>
+            <td class="text-nowrap">
+              <RouterLink
+                class="btn btn-primary me-2"
+                :to="`/tutores/${tutor.id}`"
+              >
+                Visualizar
+              </RouterLink>
+              <button
+                type="button"
+                class="btn btn-danger"
+                :disabled="String(excluindoTutorId) === String(tutor.id)"
+                @click="excluirTutor(tutor)"
+              >
+                {{
+                  String(excluindoTutorId) === String(tutor.id)
+                    ? 'Excluindo...'
+                    : 'Excluir'
+                }}
+              </button>
+            </td>
+          </tr>
+          <tr v-if="tutores.length === 0 && !erro">
+            <td colspan="9" class="text-center text-body-secondary">
+              Nenhum tutor cadastrado.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>

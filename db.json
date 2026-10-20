@@ -11,9 +11,20 @@
       "telefone": "47988880000"
     },
     {
-      "nome": "Geraldo",
-      "telefone": "67 67676767",
-      "id": "IKzIsjKbyeg"
+      "nome": "asdasdasd",
+      "telefone": "12312312312",
+      "cpfCnpj": "11231231231",
+      "email": "asds@asd",
+      "dataNascimento": "2026-09-27",
+      "endereco": {
+        "rua": "asdas",
+        "numero": "asd",
+        "bairro": "asd",
+        "cidade": "asd",
+        "estado": "PR",
+        "cep": "10000000"
+      },
+      "id": "Swhs1JTgEs4"
     }
   ],
   "pets": [
@@ -40,6 +51,12 @@
       "especie": "Outro",
       "tutorId": "1",
       "id": "LdPWtknF7a8"
+    },
+    {
+      "nome": "sdfsasd",
+      "especie": "Outro",
+      "tutorId": "Swhs1JTgEs4",
+      "id": "c7taK9RCPGM"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

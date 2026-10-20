@@ -21,6 +21,7 @@ const novoTutor = ref({
   },
 });
 const erro = ref('');
+const salvando = ref(false);
 
 const estados = [
   ['AC', 'Acre'],
@@ -100,11 +101,17 @@ const cepFormatado = computed({
   },
 });
 
+const nomeValido = computed(() => novoTutor.value.nome.trim().length > 0);
+const telefoneValido = computed(() => novoTutor.value.telefone.length > 0);
+const formularioValido = computed(() => nomeValido.value && telefoneValido.value);
 
 async function salvarTutor() {
-  if (!formularioValido.value) {
+  if (!formularioValido.value || salvando.value) {
     return;
   }
+
+  salvando.value = true;
+  erro.value = '';
 
   try {
     const resposta = await fetch(`${API_URL}/tutores`, {
@@ -137,6 +144,8 @@ async function salvarTutor() {
   } catch (error) {
     console.error('Erro ao salvar tutor:', error);
     erro.value = 'Não foi possível salvar o tutor. Tente novamente.';
+  } finally {
+    salvando.value = false;
   }
 }
 </script>
@@ -168,6 +177,9 @@ async function salvarTutor() {
                 required
                 :aria-invalid="!nomeValido"
               />
+              <small v-if="!nomeValido" class="text-danger">
+                Ops, campo obrigatório, por favor preencha-o!
+              </small>
             </div>
 
             <div class="col-12 col-md-6">
@@ -183,6 +195,9 @@ async function salvarTutor() {
                 required
                 :aria-invalid="!telefoneValido"
               />
+              <small v-if="!telefoneValido" class="text-danger">
+                Ops, campo obrigatório, por favor preencha-o!
+              </small>
             </div>
 
             <div class="col-12 col-md-6">
@@ -307,8 +322,12 @@ async function salvarTutor() {
         </div>
       </section>
 
-      <button type="submit" class="btn btn-success">
-        Salvar tutor
+      <button
+        type="submit"
+        class="btn btn-success"
+        :disabled="!formularioValido || salvando"
+      >
+        {{ salvando ? 'Salvando...' : 'Salvar tutor' }}
       </button>
       <RouterLink class="btn btn-secondary ms-2" to="/tutores">Cancelar</RouterLink>
     </form>
